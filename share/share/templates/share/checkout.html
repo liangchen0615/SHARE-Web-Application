@@ -1,0 +1,97 @@
+{% extends "share/base.html" %}
+{% block nav-info %}
+    <div>
+        <a href="{% url 'logout' %}">
+            <button id="id_nav_logout" class="nav_button">Logout</button>
+        </a>
+    </div>
+{% endblock %}
+{% block content %}
+
+    <!-- Replace "test" with your own sandbox Business account app client ID -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AVT_KGfjwYKUxjUZjd0s2ti07Xtbq-H9ZZlH0Y0ZKrhf-vJgrbdSwSozgLeqTKnVSzj4WO9ow-xCEhQb&currency=USD"></script>
+    <!-- Set up a container element for the button -->
+    <style>
+        #paypal-button-container{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            padding: 50px;
+            width: 500px;
+        }
+    </style>
+    <div id="paypal-button-container"></div>
+    <script>
+            window.onload=hideCart
+        function hideCart(){
+            document.getElementById("cart-icon").style.visibility = "hidden"
+        }
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        var csrftoken = getCookie('csrftoken');
+        var discount = "1.0"
+            {% if cart.coupon %}
+            discount = "{{ cart.coupon.discount }}"
+            {% endif %}
+        var total = parseFloat("{{ cart.total_price }}") * parseFloat(discount);
+
+        function completeOrder() {
+            var url = "{% url 'complete' %}"
+            var address_id = "{{ address.id }}"
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body:JSON.stringify({'address_id': address_id})
+            })
+        }
+
+
+
+    paypal.Buttons({
+        // Sets up the transaction when a payment button is clicked
+        createOrder: (data, actions) => {
+        return actions.order.create({
+            purchase_units: [{
+            amount: {
+                value: parseFloat(total).toFixed(2) // Can also reference a variable or function
+            }
+            }]
+        });
+        },
+        // Finalize the transaction after payer approval
+        onApprove: (data, actions) => {
+        return actions.order.capture().then(function(orderData) {
+            completeOrder();
+            // Successful capture! For dev/demo purposes:
+            console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
+            const transaction = orderData.purchase_units[0].payments.captures[0];
+            alert(`Transaction ${transaction.status}: ${transaction.id}\n\nSee console for all available details`);
+            // When ready to go live, remove the alert and show a success message within this page. For example:
+            const element = document.getElementById('paypal-button-container');
+            element.innerHTML = "<h3>Thank you for your payment! <br />Your order details has been send to your email. <a style='text-decoration: none; color:pink' href=\"{% url 'productStream' %}\">Back To Home</a></h3>"
+            // Or go to another URL:  actions.redirect('thank_you.html');
+        });
+
+
+        
+        }
+    }).render('#paypal-button-container');
+    </script>
+{% endblock %}

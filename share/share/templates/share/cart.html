@@ -1,0 +1,144 @@
+{% extends "share/base.html" %}
+
+{% block nav-info %}
+<div>
+    <a href="{% url 'logout' %}">
+        <button id="id_nav_logout" class="nav_button">Logout</button>
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<h2 id="id_page_name">My Shopping Cart</h2>
+<script>
+    window.onload = function (){ total_price() }
+    function dec(id){
+        let element = document.getElementById("id_item_quantity_"+id )
+        element.value -= 1
+        if( element.value < 0)
+            element.value = 0
+        total_price()
+    }
+    function inc(id){
+        let element = document.getElementById("id_item_quantity_"+id )
+        element.value
+            = parseInt(element.value) + 1
+        total_price()
+    }
+    function total_price(){
+        let total_price = 0
+        {% for cartitem in cart %}
+
+            total_price += {{ cartitem.items_price }} * parseInt(document.getElementById("id_item_quantity_"+ {{ cartitem.id }}).value)
+        {% endfor %}
+
+        {% if user.cart.coupon %}
+            total_price *= parseFloat("{{  user.cart.coupon.discount }}")
+        {% endif %}
+        total_price = total_price.toFixed(2)
+        document.getElementById("total_price").innerHTML = "Total price: $" + total_price
+    }
+
+    function delete_cart_item(id){
+        let xhr = new XMLHttpRequest()
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState != 4) return
+            updatePage(xhr)
+        }
+        let url = "{% url 'delete_cartitem' %}"
+        console.log(url)
+        xhr.open("POST", url, true)
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.send("id="+id+"&csrfmiddlewaretoken="+getCSRFToken());
+    }
+    function updatePage(xhr){
+        if(xhr.status ==200){
+            window.location.reload(true)
+        }
+    }
+    function getCSRFToken() {
+    let cookies = document.cookie.split(";")
+    for (let i = 0; i < cookies.length; i++) {
+        let c = cookies[i].trim()
+        if (c.startsWith("csrftoken=")) {
+            return c.substring("csrftoken=".length, c.length)
+        }
+    }
+    return "unknown"
+}
+</script>
+    <style>
+    .cart-item-container{
+        display: flex;
+        justify-content: center;
+
+    }
+    .cart-item{
+        font-size: 24px;
+        font-weight: 600;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        border-radius: 5px;
+        background-color: #f5f5f5;
+        padding:10px 20px;
+        margin: 20px;
+    }
+    #total_price{
+        font-size: 24px;
+        font-weight: 600;
+        color: #fc0000;;
+    }
+    .qty-selector{
+        display: flex;
+        justify-content: end ;
+        align-items: center;
+    }
+    .qty-input{
+        padding: 0 5px;
+        margin: 0 5px;
+        width: 75px;
+        height: 30px;
+        text-align: center;
+        font-size: 16px;
+        border-radius: 15px;
+    }
+    .title-text{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    </style>
+<div id="cart-item-container">
+    {% if cart|length == 0 %}
+        <div class="cart-item">Your cart is empty.</div>
+    {% else %}
+        {% if message %}
+            <script>alert("{{ message }}")</script>
+        {% endif %}
+        <form method="post" action="{% url 'checkout' %}">
+            <span id="total_price" ></span><button class="btn btn-secondary" type="submit">Checkout</button>
+
+            {% for cartitem in cart %}
+
+                <div class="cart-item">
+                <a href="{% url 'productDetail' cartitem.item.id %}" style="text-decoration: none; color: black" ><p class="title-text">{{cartitem.item.title}}</p></a>
+                <div class="qty-selector">
+                     <span style="font-size: 18px;">Qty:</span>
+                    <input class="qty-input"id="id_item_quantity_{{ cartitem.id }}" name="item_quantity_{{ cartitem.id }}" value="{{cartitem.quantity}}"  type="number" min="1" max="100" onchange="total_price()">
+                    <button class="btn" onclick="delete_cart_item({{ cartitem.id }})">delete</button>
+                    <span id="id_item_price_{{cartitem.id}}">${{cartitem.items_price}}</span>
+                </div>
+                </div>
+            {%endfor%}
+            {% csrf_token %}
+        </form>
+        <form method="post" action="{% url 'coupon' %}">
+        <label>Coupon: </label>
+        <input type="text" name = "coupon_text" id="id_coupon_input_text">
+        <button type="submit" class="btn btn-secondary">Apply</button>
+            {% csrf_token %}
+        </form>
+    {% endif %}
+</div>
+
+{% endblock %}

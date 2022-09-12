@@ -1,0 +1,109 @@
+
+.head_div {
+    background-color: beige;
+}
+.comment {
+    margin: 30px;
+}
+.date {
+    font-style: italic;
+}
+#id_username {
+    font-size: 20px;
+}
+#id_password {
+    font-size: 20px;
+}
+
+#id_confirm_password {
+    font-size: 20px;
+}
+#id_email {
+    font-size: 20px;
+}
+#id_first_name {
+    font-size: 20px;
+}
+#id_last_name {
+    font-size: 20px;
+}
+
+.head_div {
+    background-color: rgba(228, 220, 220, 0.178);
+
+}
+.nav_button {
+    float:right;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 2rem;
+    width: 100px;
+    height: 60px;
+    margin-right: 10px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    text-decoration: none;
+    color: rgb(70, 66, 66);
+    background-color: white;
+    backface-visibility: hidden;
+    border: 0.3rem solid transparent;
+    border-radius: 3rem;
+    border-color: #fff;
+    transition: transform 0.2s cubic-bezier(0.235, 0, 0.05, 0.95);
+}
+
+
+.submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 2rem;
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    text-decoration: none;
+    color: rgb(70, 66, 66);
+    backface-visibility: hidden;
+    border: 0.3rem solid transparent;
+    border-radius: 3rem;
+    border-color: #fff;
+    transition: transform 0.2s cubic-bezier(0.235, 0, 0.05, 0.95);
+}
+
+#id_site_name {
+    font-family: 'Dancing Script', cursive;
+	font-size: 80px;
+	margin-bottom: 30px;
+}
+h1 {
+    font-family: 'Source Sans Pro';
+    font-size: 20px;
+}
+.comment {
+    margin: 30px;
+}
+#id_username {
+    font-size: 20px;
+}
+#id_password {
+    font-size: 20px;
+}
+#id_login_button {
+    font-size: 20px;
+}
+#id_confirm_password {
+    font-size: 20px;
+}
+#id_email {
+    font-size: 20px;
+}
+#id_first_name {
+    font-size: 20px;
+}
+#id_last_name {
+    font-size: 20px;
+}

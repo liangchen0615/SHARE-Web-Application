@@ -1,0 +1,121 @@
+{% extends "share/base.html" %}
+
+{% block nav-info %}
+<div>
+    <a href="{% url 'logout' %}">
+        <button id="id_nav_logout" class="nav_button">Logout</button>
+    </a>
+</div>
+{% endblock %}
+
+
+{% block content %}
+    <style>
+.rate {
+    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: 12px
+}
+
+.rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center
+}
+
+.rating>input {
+    display: none
+}
+
+.rating>label {
+    position: relative;
+    width: 1em;
+    font-size: 30px;
+    font-weight: 300;
+    color: #FFD600;
+    cursor: pointer
+}
+
+.rating>label::before {
+    content: "\2605";
+    position: absolute;
+    opacity: 0
+}
+
+.rating>label:hover:before,
+.rating>label:hover~label:before {
+    opacity: 1 !important
+}
+
+.rating>input:checked~label:before {
+    opacity: 1
+}
+
+.rating:hover>input:checked~label:before {
+    opacity: 0.4
+}
+
+.buttons {
+    top: 36px;
+    position: relative
+}
+
+.rating-submit {
+    border-radius: 15px;
+    color: #fff;
+    height: 49px
+}
+
+.rating-submit:hover {
+    color: #fff
+}
+
+.review-sec{
+     text-align: left;
+    width: 100%;
+}
+    .review_item{
+        font-size: 24px;
+        font-weight: 600;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        border-radius: 5px;
+        background-color: #f5f5f5;
+        padding:10px 20px;
+        margin: 20px;
+    }
+    .datetime{
+        font-family: "Courier New";
+        font-size :16px
+    }
+    .title{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .price{
+        color: #fa0000;
+        margin-left: 10px ;
+    }
+    </style>
+    <div style="text-align: center">
+        <span style="font-size: 36px">Your order shipped to 
+            {{orderitems.first.order.address.address1}}
+             is placed on {{orderitems.first.order.datetime}}</span>
+    </div>
+<div id="reviews_div">
+    {% for orderitem in orderitems %}
+        <div class="review_item" style="position:relative;">
+         <div style="display: inline-block">
+             <a href="{% url 'reviewDetail' orderitem.id %} ">
+                <img src="{% url 'productPicture' orderitem.item.id %}" id="product_detail_picture" width="100" height="100" style="vertical-align: baseline">
+             </a>
+         </div>
+            <div style="display: inline-block; width: 80vw">
+                
+                <a href="{% url 'reviewDetail' orderitem.id %} ">
+                    <p class="title">{{orderitem.item.title}}</p>
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

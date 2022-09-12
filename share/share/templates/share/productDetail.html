@@ -1,0 +1,322 @@
+{% extends "share/base.html" %}
+{% block nav-info %}
+<div>
+    <a href="{% url 'logout' %}">
+        <button id="id_nav_logout" class="nav_button">Logout</button>
+    </a>
+</div>
+
+{% endblock %}
+
+{% block content %}
+    <script>
+        var postAnswerURL ="{% url 'post_answer' item.id%}"
+        var postQuestionURL ="{% url 'post_question' item.id%}"
+        window.onload = getGlobal({{ item.id }})
+        window.setInterval(getGlobal({{ item.id }}), 5000)
+    </script>
+{% load static %}
+<style>
+.container{
+     margin: 5vw;
+}
+.item-display{
+    display: flex;
+    align-items: flex-start;
+}
+.image{
+    max-width: 50vw;
+    max-height: 80vh;
+}
+.title{
+    margin-left: 5vw;
+}
+#item_amount{
+    width: 75px;
+    height: 30px;
+    text-align: center;
+    font-size: 16px;
+    border-radius: 15px;
+    margin-left: 10px ;
+}
+.item-price{
+    color: #fc0000;
+    font-size: 28px;
+}
+#submit_button{
+    position: absolute;
+    right: 0;
+}
+#id_page_name{
+    margin-top: 10vh;
+}
+#product_detail{
+    line-height: 0.8;
+    font-size: 14px;
+}
+.title{
+    position: relative;
+}
+.qty-sel{
+    display: flex;
+    align-items: center;
+}
+.question-review-container{
+    display: flex;
+}
+.question-review-wrapper{
+    display: inline-block;
+    width: 50%;
+    margin: 0 20px;
+}
+.answer-indent {
+    padding-left: 30px;
+}
+</style>
+
+<div class="container">
+
+    <div class="item-display">
+        <div id="product_image_div">
+        {% if not item.picture %}
+            <img src="{% static 'share/flag.png' %}" id="product_detail_picture" class="image">
+        {% else %}
+            <img src="{% url 'productPicture' item.id %}" id="product_detail_picture" class="image">
+        {% endif %}
+        </div>
+        <div class="title">
+            <h3 id="id_page_name" >{{item.title}}</h3>
+            <p class="item-price">${{ item.price }}</p>
+            <span id="id_rating">Rating: {{ item.averagerating|floatformat:-1 }} / 5.0</span>
+            <form method="post" action="{% url 'addtocart' item.id %}" class="qty-sel">
+                <span style="font-size: 18px;">Qty:</span>
+                <input type="number" min="1" max="100" name="cart_amount" id="item_amount" value="1">
+                {% if message %}
+                    <script>alert("This product is out of stock!")</script>
+                {% endif %}
+                <button id="submit_button" type="submit" class="btn btn-secondary" onclick="checkAmount()">Add to cart</button>
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+<hr>
+
+    <div id="product_detail_div">
+        <h3 >Product Description:</h3>
+        <span id="product_detail">
+            {{item.description}}
+        </span>
+        <span id="product_stock">
+            <h3>Product stock: </h3>
+            {% if item.stock <= 0  %}
+                <span>This product is out of stock!</span>
+            {% else %}
+                {{ item.stock }}
+            {% endif %}
+        </span>
+    </div>
+<hr>
+
+<div class="question-review-container">
+<div id="id_question_section" class="question-review-wrapper">
+    <h2 class="section_title"> Q&A </h2>
+<hr>
+    <div id="post_question_go_here">
+    </div>
+    <div id="item_questions_go_here">
+        <div id="question_{{ question.id }}_answers_go_here"></div>
+    </div>
+
+</div>
+<div id="id_review_section" class="question-review-wrapper">
+<h2 class="section_title">Reviews</h2>
+<hr>
+    {% for review in reviews %}
+    <div id="id_review_section_{{review.id}}">
+        <span id="review_text">{{review.text}} &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</span>
+        <span id="review_user"> --- {{review.user.first_name}} {{review.user.last_name}} &nbsp&nbsp&nbsp</span>
+        <span id="review_timestamp">{{review.creation_time}}</span>
+        <div>
+        {% for file in all_files %}
+            {% if file.review.id == review.id %}
+                {% if 'image'  in file.content_type %}
+                <img src="{% url 'photo' file.id %}" alt="Review Photos" width="250" height="250">
+                {% endif %}
+
+                {% if 'video'  in file.content_type %}
+                <video width='250' controls>
+                    <source src='{% url 'photo' file.id %}' type='video/mp4'>
+                    Your browser does not support the video tag.
+                </video>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+</div>
+</div>
+    <script>"use strict"
+// Sends a new request to update the to-do list
+function getGlobal(item_id) {
+    let xhr = new XMLHttpRequest()
+    // let response = JSON.parse(xhr.responseText)
+    // let item_id = response['item_id']
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState != 4) return
+        updatePage(xhr, item_id)
+    }
+    // xhr.open("GET", "/share/get_product?id=" + item_id, true)
+    xhr.open("GET", "/share/get_product/" + item_id, true)
+
+    xhr.send()
+}
+
+function updatePage(xhr, item_id) {
+    if (xhr.status == 200) {
+        let response = JSON.parse(xhr.responseText)
+        updateQuestion(response, item_id)
+        updateAnswer(response, item_id)
+        return
+    }
+
+    if (xhr.status == 0) {
+        displayError("Cannot connect to server")
+        return
+    }
+
+    if (!xhr.getResponseHeader('content-type') == 'application/json') {
+        displayError("Received status=" + xhr.status)
+        return
+    }
+    let response = JSON.parse(xhr.responseText)
+    if (response.hasOwnProperty('error')) {
+        displayError(response.error)
+        return
+    }
+
+    displayError(response)
+}
+
+function displayError(message) {
+    let errorElement = document.getElementById("error")
+    errorElement.innerHTML = message
+}
+
+function updateQuestion(items, item_id) {
+    let questions = items['questions']
+    let list = document.getElementById("item_questions_go_here")
+    let new_question = document.getElementById("post_question_go_here")
+    new_question.innerHTML = '<label style="width: 20%; display: inline-block">' + 'New Question:' + '</label>' +
+        '<input class="form-control" style="width: 50%; display: inline-block" type="text" name="question_text" id="id_question_input_text">' +
+        '<button id="id_post_question_button" style="width: 15%; display: inline-block" class="btn btn-secondary" onclick="addQuestion()">' + 'Submit' + '</button>'
+
+    // Adds each new question item to the list
+    for (let i = 0; i < questions.length; i++) {
+        let question = questions[i]
+        if (!document.body.contains(document.getElementById("id_question_div_" + question.id))) {
+            let element = document.createElement("div")
+            let time = new Date(question.creation_time).toLocaleDateString() + " " + new Date(question.creation_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            element.setAttribute('id', 'id_question_div_' + question.id)
+            element.innerHTML =
+                '<span id="id_question_text_'+question.id+'">' + sanitize(question.text) + '</span>' +
+                '<span class="date" id="id_question_date_time_'+question.id+'">' + '&nbsp&nbsp&nbsp&nbsp&nbsp' + time + '</span>' +
+                '<span>' + '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' + question.user + '</span>' +
+                '<div id="question_'+question.id+'_answers_go_here" class="answer-indent"></div>' +
+                '<label style="width: 20%; display: inline-block" class="answer-indent">' + 'Answer:' + '</label>' +
+                '<input class="form-control" style="width: 50%; display: inline-block" type="text" name="answer_text" id="id_answer_input_text_'+question.id+'">' +
+                '<button class="btn btn-secondary" style="width: 15%; display: inline-block"id="id_answer_button_'+question.id+'" onclick="addAnswer('+question.id+')">' + 'Submit' + '</button>'
+            //list.appendChild(element)
+            list.prepend(element)
+        }
+    }
+}
+
+function updateAnswer(items) {
+    let answers = items['answers']
+    let questions = items['questions']
+
+    for (let i = 0; i < questions.length; i++) {
+        let question = questions[i]
+        for(let j = 0; j < answers.length; j++) {
+            let answer = answers[j]
+            if (answer.question_id == question.id) {
+                let answer_list = document.getElementById("question_" + question.id + "_answers_go_here")
+                if (!document.body.contains(document.getElementById("id_answer_div_" + answer.id))) {
+                    let time = new Date(answer.creation_time).toLocaleDateString() + " " + new Date(answer.creation_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                    let element = document.createElement("div")
+                    element.setAttribute('id', 'id_answer_div_' + answer.id)
+                    element.innerHTML =
+                        '<span id="id_answer_text_'+answer.id+'" >' + sanitize(answer.text) + '</span>' +
+                        '<span class="date" id="id_answer_date_time_'+answer.id+'">' + '&nbsp&nbsp&nbsp&nbsp&nbsp' + time + '</span>' +
+                        '<span>' + '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp' + answer.user + '</span>'
+                    answer_list.prepend(element)
+                }
+            }
+        }
+    }
+}
+
+function parseDate(s) {
+    let d = new Date(s)
+    d.toLocaleDateString()
+    d.toLocaleTimeString()
+    return d
+}
+
+function sanitize(s) {
+    // Be sure to replace ampersand first
+    return s.replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+}
+
+function getCSRFToken() {
+    let cookies = document.cookie.split(";")
+    for (let i = 0; i < cookies.length; i++) {
+        let c = cookies[i].trim()
+        if (c.startsWith("csrftoken=")) {
+            return c.substring("csrftoken=".length, c.length)
+        }
+    }
+    return "unknown"
+}
+
+function addAnswer(question_id) {
+    let id = 'id_answer_input_text_' + question_id
+    let itemTextElement = document.getElementById(id)
+    let itemTextValue   = itemTextElement.value
+    // Clear input box and old error message (if any)
+    itemTextElement.value = ''
+
+    let xhr = new XMLHttpRequest()
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState != 4) return
+        updatePage(xhr)
+    }
+
+    xhr.open("POST", postAnswerURL, true);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.send("answer_text="+itemTextValue+"&csrfmiddlewaretoken="+getCSRFToken()+"&question_id="+question_id);
+}
+
+function addQuestion() {
+    let itemTextElement = document.getElementById('id_question_input_text')
+    let itemTextValue   = itemTextElement.value
+    // Clear input box and old error message (if any)
+    itemTextElement.value = ''
+
+    let xhr = new XMLHttpRequest()
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState != 4) return
+        updatePage(xhr)
+    }
+
+    xhr.open("POST", postQuestionURL, true);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.send("question_text="+itemTextValue+"&csrfmiddlewaretoken="+getCSRFToken());
+}</script>
+{% endblock %}

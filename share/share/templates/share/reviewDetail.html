@@ -1,0 +1,152 @@
+{% extends "share/base.html" %}
+
+{% block nav-info %}
+    <div>
+        <a href="{% url 'logout' %}">
+            <button id="id_nav_logout" class="nav_button">Logout</button>
+        </a>
+    </div>
+{% endblock %}
+
+
+{% block content %}
+    <style>
+        .rate {
+            border-bottom-right-radius: 12px;
+            border-bottom-left-radius: 12px
+        }
+
+        .rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center
+        }
+
+        .rating>input {
+            display: none
+        }
+
+        .rating>label {
+            position: relative;
+            width: 1em;
+            font-size: 30px;
+            font-weight: 300;
+            color: #FFD600;
+            cursor: pointer
+        }
+
+        .rating>label::before {
+            content: "\2605";
+            position: absolute;
+            opacity: 0
+        }
+
+        .rating>label:hover:before,
+        .rating>label:hover~label:before {
+            opacity: 1 !important
+        }
+
+        .rating>input:checked~label:before {
+            opacity: 1
+        }
+
+        .rating:hover>input:checked~label:before {
+            opacity: 0.4
+        }
+
+        .buttons {
+            top: 36px;
+            position: relative
+        }
+
+        .rating-submit {
+            border-radius: 15px;
+            color: #fff;
+            height: 49px
+        }
+
+        .rating-submit:hover {
+            color: #fff
+        }
+
+        .review-sec{
+            text-align: left;
+            width: 100%;
+        }
+        .review_item{
+            font-size: 24px;
+            font-weight: 600;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+            border-radius: 5px;
+            background-color: #f5f5f5;
+            padding:10px 20px;
+            margin: 20px;
+        }
+        .datetime{
+            font-family: "Courier New";
+            font-size :16px
+        }
+        .title{
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+    <div id="reviews_div">
+            <div class="review_item" style="position:relative;">
+                <div >
+                    <div style="display: inline-block">
+                        <img src="{% url 'productPicture' orderitem.item.id %}" id="product_detail_picture" width="100" height="100" style="vertical-align: baseline">
+                    </div>
+                    <div style="display: inline-block; width: 80vw">
+                        <p class="datetime">{{orderitem.order.datetime}}</p>
+                        <p class="title">{{orderitem.item.title}}</p>
+                    </div>
+                </div>
+{% for error in form.non_field_errors %}
+<p class="errorlist">
+    {{ error }}
+{% endfor %}
+            {% if orderitem.review  %}
+                <p>You have reviewed this item - {{ orderitem.review.text }}</p>
+            {% else %}
+                <form method="POST" action="{% url 'review' orderitem.id %}" id="form_{{ orderitem.id }}" enctype="multipart/form-data">
+
+                    <div class="review-sec">
+
+                        <div>
+                            <span>Rate This Item</span>
+                            <div style="display: inline-block">
+                                <div class="rating">
+                                    <input type="radio" name="rating" value="5" id="5_{{ orderitem.id }}">
+                                    <label for="5_{{ orderitem.id }}">☆</label>
+                                    <input type="radio" name="rating" value="5" id="4_{{ orderitem.id }}">
+                                    <label for="4_{{ orderitem.id }}">☆</label>
+                                    <input type="radio" name="rating" value="3" id="3_{{ orderitem.id }}">
+                                    <label for="3_{{ orderitem.id }}">☆</label>
+                                    <input type="radio" name="rating" value="2" id="2_{{ orderitem.id }}">
+                                    <label for="2_{{ orderitem.id }}">☆</label>
+                                    <input type="radio" name="rating" value="1" id="{{ orderitem.id }}">
+                                    <label for="1_{{ orderitem.id }}">☆</label> </div>
+                            </div>
+                        </div>
+                        <div>
+                            <span>Write a Review</span>
+                            <div style="display: inline-block">
+                                <input class="form-control" id="review_text" name="review" type="text" style="width: 50vw">
+                            </div>
+                        </div>
+                        <div>
+                            <span>Upload some files</span>
+                                <table>
+                                    {{ form }}
+                                </table>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" style="position: absolute; right: 10px; bottom: 10px">Submit</button>
+                    {% csrf_token %}
+                </form>
+                {% endif %}
+            </div>
+    </div>
+{% endblock %}

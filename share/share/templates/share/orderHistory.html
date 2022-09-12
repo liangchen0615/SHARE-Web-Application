@@ -1,0 +1,58 @@
+{% extends "share/base.html" %}
+
+{% block nav-info %}
+<div>
+    <a href="{% url 'logout' %}">
+        <button id="id_nav_logout" class="nav_button">Logout</button>
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<style>
+    .order_detail{
+        width: 65vw;
+        font-size: 24px;
+        font-weight: 600;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        border-radius: 5px;
+        background-color: #f5f5f5;
+        margin: 20px auto;
+    }
+    .title{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 50vw;
+    }
+    .order-time{
+        font-family: "Courier New";
+        font-size :16px
+    }
+</style>
+<div id="order_history">
+    {% if orders|length == 0 %}
+        <div class="order_detail" style="padding:20px">Your order history is empty.</div>
+    {% else %}
+    {% for order in orders %}
+    <div class="order_detail">
+    <div style="height: 100px; background-color: #353535; padding:20px; color: white; border-radius: 5px 5px 0 0;" >
+        <p class="order-time">{{order.datetime}}</p>
+        <p class="order-time"> Ship to: {{ order.address.name }} {{ order.address.address1 }}...</p>
+    </div>
+
+        <div style="padding:20px">
+
+        {% for orderitem in order.orderitem_set.all %}
+            <p class="title">- {{orderitem.item.title}}</p>
+        {% endfor %}
+        <span>${{order.total_price}}</span>
+        </br><a href="{% url 'order_detail' order.id %}">
+            Order Detail
+        </a>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+</div>
+{% endblock %}

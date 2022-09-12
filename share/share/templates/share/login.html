@@ -1,0 +1,75 @@
+{% extends "share/base.html" %}
+{% load static %}
+<meta name = "google-signin-client-id" content="860298803996-popeo30lmt6k8eh4qbufb0hbsdlr809r.apps.googleusercontent.com">
+
+{% block nav-info %}
+{% endblock %}
+
+{% block content %}
+<div class="login_container">
+        <p style="font-size: 50px" id="id_page_name">Login</p>
+{% for error in form.non_field_errors %}
+<p class="errorlist">
+    {{ error }}
+{% endfor %}
+        <form method="post" action="{% url 'login' %}">
+            {% for field in form %}
+                <div class="form-floating">
+                    {{ field }}
+                </div>
+            {% endfor %}
+            {% csrf_token %}
+            <button class="w-100 btn btn-lg btn-dark" id="login_button" type="submit" >Signin</button>
+
+            <span>or you can sign in with</span>
+            <a href="{% url "social:begin" "google-oauth2" %}"><img src="{% static 'share/google.png' %}" style="width: 30px; height: 30px"></a>
+            <div data-onsuccess="'onSignin"></div>
+            <p class="register">Do not have an account?<a id="id_register_link" class="navbar-brand" href="{% url 'register' %}"><u>Signup</u></a></p>
+        </form>
+</div>
+    <div>
+
+    <script>
+        window.onload=hideCart
+        function hideCart(){
+            document.getElementById("cart-icon").style.visibility = "hidden"
+        }
+        function onSignin(googleUser) {
+            var profile = googleUser.getBasicProfile();
+            console.log('ID: ' + profile.getId());
+            console.log('username: ' + profile.getName());
+            console.log('Email: ' + profile.getEmail());
+        }
+    </script>
+    </div>
+
+    <style>
+        .form-signin{
+            width: 100%;
+            max-width: 330px;
+            margin: auto;
+        }
+        .login-input{
+            border: 1px solid #ababab;
+            padding: 0 10px;
+        }
+        .btn-lg{
+            margin: 30px 0;
+        }
+        #id_username{
+            margin: 30px 0;
+        }
+        .login_container{
+            padding: 20px;
+        margin: 5vw auto;
+        text-align: center;
+        font-size: 20px;
+        font-family: SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+            width: 35vw;
+                    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        border-radius: 15px;
+        background-color: #fafafa;
+            line-height: 50px;
+}
+    </style>
+{% endblock %}
